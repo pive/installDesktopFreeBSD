@@ -171,7 +171,7 @@ _dit () {
 	THEME="$1"
 	EXT="$2"
 	cd /tmp
-	if _fetch ${REPO}themes/${THEME}.${EXT} ; then
+	if _fetch themes/${THEME}.${EXT} ; then
 		tar xf ${THEME}.${EXT} -C /usr/local/share/themes
 		chmod -R 755 /usr/local/share/themes/${THEME}
 		rm ${THEME}.${EXT}
