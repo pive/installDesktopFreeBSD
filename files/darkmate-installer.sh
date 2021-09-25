@@ -26,6 +26,17 @@
 
 VER='13.0'
 REPO="https://raw.githubusercontent.com/broozar/installDesktopFreeBSD/DarkMate${VER}/files/"
+ROOT=$(dirname $(readlink -f "$0"))
+
+# ------------------------------------ fetch or copy
+_fetch() {
+  if [ -f "$ROOT/$1" ] ; then
+    cp "$ROOT/$1" .
+  else
+    _fetch $1
+  fi
+  return $?
+}
 
 # ------------------------------------ control vars and strings
 
@@ -160,7 +171,7 @@ _dit () {
 	THEME="$1"
 	EXT="$2"
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}themes/${THEME}.${EXT} ; then
+	if _fetch ${REPO}themes/${THEME}.${EXT} ; then
 		tar xf ${THEME}.${EXT} -C /usr/local/share/themes
 		chmod -R 755 /usr/local/share/themes/${THEME}
 		rm ${THEME}.${EXT}
@@ -357,7 +368,7 @@ kbd_read () {
 
 dia_kbd () {
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}include/kbd_str.sh ; then
+	if _fetch include/kbd_str.sh ; then
 		. /tmp/kbd_str.sh
 		
 		DIA_OPTIONS="$DIA_KBD_LANG"
@@ -1045,7 +1056,7 @@ i_mate () {
 
 	printf "[ ${CG}NOTE${NC} ]  Adding PolicyKit rules\n\n"	
 	cd /usr/local/share/polkit-1/rules.d
-	fetch --no-verify-peer ${REPO}polkit/shutdown-reboot.rules
+	_fetch polkit/shutdown-reboot.rules
 	chmod 755 shutdown-reboot.rules
 	cd /tmp
 	echo ""
@@ -1065,7 +1076,7 @@ i_slim () {
 	sysrc slim_enable="YES"
 	
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}config/10-keyboard.conf ; then
+	if _fetch config/10-keyboard.conf ; then
 		chmod 775 ./10-keyboard.conf
 		if [ -z "$KBD_VAR" ] ; then
 			sed -i ".bak" "s/#####KBD/Option \"XkbLayout\" \"${KBD_LANG}\"\n\tOption \"XkbVariant\" \"\"/" ./10-keyboard.conf
@@ -1082,7 +1093,7 @@ i_slim () {
 t_slim () {
 	printf "[ ${CG}NOTE${NC} ]  Installing SLiM theme\n\n"
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}themes/darkslim.tar.xz ; then
+	if _fetch themes/darkslim.tar.xz ; then
 		tar xf darkslim.tar.xz -C /usr/local/share/slim/themes
 		sed -i ".bak" "s/current_theme.*/current_theme		darkslim/" /usr/local/etc/slim.conf
 		rm darkslim.tar.xz
@@ -1099,7 +1110,7 @@ i_lightdm () {
 
 t_lightdm () {
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}config/lightdm-gtk-greeter.conf ; then
+	if _fetch config/lightdm-gtk-greeter.conf ; then
 		chmod 775 ./lightdm-gtk-greeter.conf
 		
 		mkdir -p /usr/local/etc/lightdm
@@ -1125,10 +1136,10 @@ t_mate () {
 	chmod 775 /usr/local/share/backgrounds/fbsd
 	
 	cd /usr/local/share/backgrounds/fbsd
-	fetch --no-verify-peer ${REPO}wallpaper/centerFlat_grey-1080.png
-	fetch --no-verify-peer ${REPO}wallpaper/centerFlat_grey-4k.png
-	fetch --no-verify-peer ${REPO}wallpaper/centerFlat_red-1080.png
-	fetch --no-verify-peer ${REPO}wallpaper/centerFlat_red-4k.png
+	_fetch wallpaper/centerFlat_grey-1080.png
+	_fetch wallpaper/centerFlat_grey-4k.png
+	_fetch wallpaper/centerFlat_red-1080.png
+	_fetch wallpaper/centerFlat_red-4k.png
 	chmod 775 center*.png
 	
 	mkdir -p /usr/local/etc/dconf/profile
@@ -1139,7 +1150,7 @@ system-db:mate
 	chmod 755 user
 	
 	cd /tmp
-	if fetch --no-verify-peer ${REPO}themes/darkmate-settings ; then
+	if _fetch themes/darkmate-settings ; then
 		chmod 775 darkmate-settings
 		if [ -z "$KBD_VAR" ] ; then
 			sed -i ".bak" "s/#####KBD/layouts=['${KBD_LANG}']/" darkmate-settings
@@ -1258,9 +1269,9 @@ i_tools () {
 	echo ""
 	
 	# custom tools
-	#fetch --no-verify-peer ${REPO}tools/cputemp
+	#_fetch tools/cputemp
 	#chmod 755 cputemp
-	fetch --no-verify-peer ${REPO}tools/mate-dumpsettings
+	_fetch tools/mate-dumpsettings
 	chmod 755 mate-dumpsettings
 	echo ""
 	
@@ -1297,7 +1308,7 @@ i_amdgpu_x () {
 	i_kmod_amdgpu
 	_pih xf86-video-amdgpu "AMDGPU (current)"
 
-	if fetch --no-verify-peer ${REPO}config/20-amdgpu.conf ; then
+	if _fetch config/20-amdgpu.conf ; then
 		chmod 755 ./20-amdgpu.conf
 		echo ""
 	else
@@ -1313,7 +1324,7 @@ i_radeon_x () {
 	i_kmod_radeon
 	_pih xf86-video-ati "RADEON (legacy)"
 
-	if fetch --no-verify-peer ${REPO}config/20-radeon.conf ; then
+	if _fetch config/20-radeon.conf ; then
 		chmod 755 ./20-radeon.conf
 		echo ""
 	else
@@ -1330,7 +1341,7 @@ i_intelsb_x () {
 	i_kmod_intel
 	_pih xf86-video-intel "INTEL graphics (current)"
 	
-	if fetch --no-verify-peer ${REPO}config/20-intelSB.conf ; then
+	if _fetch config/20-intelSB.conf ; then
 		chmod 755 ./20-intelSB.conf
 		echo ""
 	else
@@ -1347,7 +1358,7 @@ i_intel_x () {
 	i_kmod_intel
 	_pih xf86-video-intel "INTEL graphics (legacy)"
 	
-	if fetch --no-verify-peer ${REPO}config/20-intel.conf ; then
+	if _fetch config/20-intel.conf ; then
 		chmod 755 ./20-intel.conf
 		echo ""
 	else
